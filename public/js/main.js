@@ -1,5 +1,7 @@
 
 var currentMap;
+var day = {};
+var currentDay = 1;
 
 $(function initializeMap (){
 
@@ -79,7 +81,7 @@ $('#hotel-add').on('click', function(event){
   let hoteldiv = '<div class="itinerary-item"> <span class="title">' + hotel + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
   $('#hotel-list').append(hoteldiv);
   let pos = hotels[index].place.location;
-  drawMarker('hotel', pos);
+  drawMarker('hotel', pos, hotel);
 
 
 
@@ -89,13 +91,13 @@ $('#restaurant-add').on('click', function(event){
 
   let resId = $('select#restaurant-choices option:checked').val();
   var index;
-  restaurants.forEach(function(hotel, i){
+  restaurants.forEach(function(restaurant, i){
     if(restaurant["id"] == resId) index = i;
   })
   let restaurant = restaurants[index].name
   let restaurantdiv = '<div class="itinerary-item"> <span class="title">' + restaurant + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
   $('#restaurant-list').append(restaurantdiv);
-  drawMarker('restaurant', restaurants[index].place.location)
+  drawMarker('restaurant', restaurants[index].place.location, restaurant)
 })
 
 $('#activity-add').on('click', function(event){
@@ -108,7 +110,30 @@ $('#activity-add').on('click', function(event){
   let activity = activities[index].name;
   let activitydiv = '<div class="itinerary-item"> <span class="title">' + activity + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
   $('#activity-list').append(activitydiv);
-  drawMarker('activity', activities[index].place.location)
+  drawMarker('activity', activities[index].place.location, activity)
+})
+
+$('#itinerary').on('click', function(event){
+  //console.log(event.target);
+  if($(event.target).hasClass('btn')){
+    console.log($(event.target).prev().text())
+    $('#itinerary').data($(event.target).prev().text()).setMap(null);
+    $(event.target).closest('div').remove();
+  }
+})
+
+$('#day-add').on('click', function(event) {
+  let nextDay = '' + $('.day-btn').length;
+  console.log(nextDay)
+  let dayBtn = '<button class="btn btn-circle day-btn">' + nextDay + '</button>'
+  $(dayBtn).insertBefore('#day-add');
+})
+
+$('.day-buttons').on('click', function(event){
+  if(!$(event.target).is('#day-add')){
+  let newDay = $(event.target).text();
+  console.log(newDay);
+}
 })
 
 var iconURLs = {
@@ -117,12 +142,38 @@ var iconURLs = {
     activity: '/images/star-3.png'
   };
 
- function drawMarker (type, coords) {
+ function drawMarker (type, coords, name) {
     var latLng = new google.maps.LatLng(coords[0], coords[1]);
     var iconURL = iconURLs[type];
     var marker = new google.maps.Marker({
       icon: iconURL,
       position: latLng
     });
+    $('#itinerary').data(name, marker)
     marker.setMap(currentMap);
   }
+
+
+/*
+Day object
+{
+  currentDay : bool
+  hotels: [],
+  restaurants: [],
+  activities: [],
+  markers: {
+  name: marker
+  }
+}
+
+populate html from object
+-remove current-day class
+
+-remove all children from hotel-list
+-remove all children from restaurant-list
+- " activity list
+-set all markers for prev day to null
+-change index to current day
+-add current-day class to clicked day
+-add items and markers to itinerary panel
+*/
