@@ -74,11 +74,6 @@ function drawMarker (type, coords, name) {
   marker.setMap(currentMap);
 }
 
-function addToItinerary(){
-
-}
-
-
 //takes id and string of hotel then returns option HTML string
 function createOptionEle(id, string){
   return '<option value="' + id + '">' + string + '</option>';
