@@ -54,56 +54,8 @@ $(function initializeMap (){
   // drawMarker('activity', [40.716291, -73.995315]);
 
 });
-/*
-For Each loops populate select elements with options from global dummy data
-*/
-hotels.forEach(function(hotel) {
-  $('#hotel-choices').append(createOptionEle(hotel.id, hotel.name));
-});
 
-restaurants.forEach(function(restaurant) {
-  $('#restaurant-choices').append(createOptionEle(restaurant.id, restaurant.name));
-});
 
-activities.forEach(function(activity) {
-  $('#activity-choices').append(createOptionEle(activity.id, activity.name));
-});
-
-$('#hotel-add').on('click', function(event){
-  addSelectedItinerary('hotel');
-
-})
-
-$('#restaurant-add').on('click', function(event){
-  addSelectedItinerary('restaurant');
-})
-
-$('#activity-add').on('click', function(event){
-  addSelectedItinerary('activity');
-})
-
-$('#itinerary').on('click', function(event){
-  //console.log(event.target);
-  if($(event.target).hasClass('btn')){
-    console.log($(event.target).prev().text())
-    $('#itinerary').data($(event.target).prev().text()).setMap(null);
-    $(event.target).closest('div').remove();
-  }
-})
-
-$('#day-add').on('click', function(event) {
-  let nextDay = '' + $('.day-btn').length;
-  console.log(nextDay)
-  let dayBtn = '<button class="btn btn-circle day-btn">' + nextDay + '</button>'
-  $(dayBtn).insertBefore('#day-add');
-})
-
-$('.day-buttons').on('click', function(event){
-  if(!$(event.target).is('#day-add')){
-  let newDay = $(event.target).text();
-  console.log(newDay);
-}
-})
 
 var iconURLs = {
   hotel: '/images/lodging_0star.png',
@@ -176,6 +128,62 @@ function addSelectedItinerary(type){
   location = itinerary[index].place.location;
   drawMarker(type, location, itineraryName);
 }
+
+/*
+For Each loops populate select elements with options from global dummy data
+*/
+hotels.forEach(function(hotel) {
+  $('#hotel-choices').append(createOptionEle(hotel.id, hotel.name));
+});
+
+restaurants.forEach(function(restaurant) {
+  $('#restaurant-choices').append(createOptionEle(restaurant.id, restaurant.name));
+});
+
+activities.forEach(function(activity) {
+  $('#activity-choices').append(createOptionEle(activity.id, activity.name));
+});
+
+//Wires up add buttons and adds selected Itinerary
+$('#hotel-add').on('click', function(event){
+  addSelectedItinerary('hotel');
+
+})
+
+$('#restaurant-add').on('click', function(event){
+  addSelectedItinerary('restaurant');
+})
+
+$('#activity-add').on('click', function(event){
+  addSelectedItinerary('activity');
+})
+
+
+//wires itinerary section to delete itinerary if btn is clicked
+$('#itinerary').on('click', function(event){
+  //console.log(event.target);
+  if($(event.target).hasClass('btn')){
+    console.log($(event.target).prev().text())
+    $('#itinerary').data($(event.target).prev().text()).setMap(null);
+    $(event.target).closest('div').remove();
+  }
+})
+
+//wires up button to add a day
+$('#day-add').on('click', function(event) {
+  let nextDay = '' + $('.day-btn').length;
+  console.log(nextDay)
+  let dayBtn = '<button class="btn btn-circle day-btn">' + nextDay + '</button>'
+  $(dayBtn).insertBefore('#day-add');
+})
+
+
+$('.day-buttons').on('click', function(event){
+  if(!$(event.target).is('#day-add')){
+  let newDay = $(event.target).text();
+  console.log(newDay);
+}
+})
 
 /*
 Day object
