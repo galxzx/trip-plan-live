@@ -54,63 +54,32 @@ $(function initializeMap (){
   // drawMarker('activity', [40.716291, -73.995315]);
 
 });
-
+/*
+For Each loops populate select elements with options from global dummy data
+*/
 hotels.forEach(function(hotel) {
-  let optionNode = '<option value="' + hotel.id + '">' + hotel.name + '</option>'
-  $('#hotel-choices').append(optionNode);
+  $('#hotel-choices').append(createOptionEle(hotel.id, hotel.name));
 });
 
 restaurants.forEach(function(restaurant) {
-  let optionNode = '<option value="' + restaurant.id + '">' + restaurant.name + '</option>'
-  $('#restaurant-choices').append(optionNode);
+  $('#restaurant-choices').append(createOptionEle(restaurant.id, restaurant.name));
 });
 
 activities.forEach(function(activity) {
-  let optionNode = '<option value="' + activity.id + '">' + activity.name + '</option>'
-  $('#activity-choices').append(optionNode);
+  $('#activity-choices').append(createOptionEle(activity.id, activity.name));
 });
 
 $('#hotel-add').on('click', function(event){
-  let hotelId = $('select#hotel-choices option:selected').val();
-  var index;
-  hotels.forEach(function(hotel, i){
-    if(hotel["id"] == hotelId) index = i;
-  })
-   let hotel = hotels[index].name
-
-  let hoteldiv = '<div class="itinerary-item"> <span class="title">' + hotel + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
-  $('#hotel-list').append(hoteldiv);
-  let pos = hotels[index].place.location;
-  drawMarker('hotel', pos, hotel);
-
-
+  addSelectedItinerary('hotel');
 
 })
 
 $('#restaurant-add').on('click', function(event){
-
-  let resId = $('select#restaurant-choices option:checked').val();
-  var index;
-  restaurants.forEach(function(restaurant, i){
-    if(restaurant["id"] == resId) index = i;
-  })
-  let restaurant = restaurants[index].name
-  let restaurantdiv = '<div class="itinerary-item"> <span class="title">' + restaurant + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
-  $('#restaurant-list').append(restaurantdiv);
-  drawMarker('restaurant', restaurants[index].place.location, restaurant)
+  addSelectedItinerary('restaurant');
 })
 
 $('#activity-add').on('click', function(event){
-
-  let actId = $('select#activity-choices option:checked').val();
-  var index;
-  activities.forEach(function(activity, i){
-    if(activity["id"] == actId) index = i;
-  })
-  let activity = activities[index].name;
-  let activitydiv = '<div class="itinerary-item"> <span class="title">' + activity + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
-  $('#activity-list').append(activitydiv);
-  drawMarker('activity', activities[index].place.location, activity)
+  addSelectedItinerary('activity');
 })
 
 $('#itinerary').on('click', function(event){
@@ -137,22 +106,76 @@ $('.day-buttons').on('click', function(event){
 })
 
 var iconURLs = {
-    hotel: '/images/lodging_0star.png',
-    restaurant: '/images/restaurant.png',
-    activity: '/images/star-3.png'
-  };
+  hotel: '/images/lodging_0star.png',
+  restaurant: '/images/restaurant.png',
+  activity: '/images/star-3.png'
+};
 
- function drawMarker (type, coords, name) {
-    var latLng = new google.maps.LatLng(coords[0], coords[1]);
-    var iconURL = iconURLs[type];
-    var marker = new google.maps.Marker({
-      icon: iconURL,
-      position: latLng
-    });
-    $('#itinerary').data(name, marker)
-    marker.setMap(currentMap);
+function drawMarker (type, coords, name) {
+  var latLng = new google.maps.LatLng(coords[0], coords[1]);
+  var iconURL = iconURLs[type];
+  var marker = new google.maps.Marker({
+    icon: iconURL,
+    position: latLng
+  });
+  $('#itinerary').data(name, marker)
+  marker.setMap(currentMap);
+}
+
+function addToItinerary(){
+
+}
+
+
+//takes id and string of hotel then returns option HTML string
+function createOptionEle(id, string){
+  return '<option value="' + id + '">' + string + '</option>';
+}
+
+//takes type of itinerary and returns div HTML for added itinerary
+function createItineraryHTML(name){
+  return '<div class="itinerary-item"> <span class="title">' + name + '</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>';
+}
+
+//calling this function takes 'hotel' 'restaurant' or 'activity' for argument
+//adds HTML for itinerary and calls drawMarker()
+function addSelectedItinerary(type){
+
+  let itineraryId = $('select#' + type +'-choices option:checked').val();
+  var index;
+  var itinerary;
+  var itineraryName;
+  var itineraryHTML;
+  var location;
+
+  //switch statement assigns itinerary to proper corresponding global variable
+  switch(type){
+    case "restaurant":
+      itinerary = restaurants;
+      break;
+    case "hotel":
+      itinerary = hotels;
+      break;
+    case "activity":
+      itinerary = activities;
   }
 
+  //Loop finds correct index for itinerary
+  itinerary.forEach(function(place, i){
+    if(place["id"] == itineraryId) {
+      index = i;
+    }
+  })
+
+  //creates HTML for button and appends to list
+  itineraryName = itinerary[index].name;
+  itineraryHTML = createItineraryHTML(itineraryName);
+  $('#'+ type +'-list').append(itineraryHTML);
+
+  //creates necessary fields for marker and calls drawMarker()
+  location = itinerary[index].place.location;
+  drawMarker(type, location, itineraryName);
+}
 
 /*
 Day object
