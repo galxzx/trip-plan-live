@@ -1,7 +1,21 @@
 
 var currentMap;
-var day = {};
-var currentDay = 1;
+var days = [];
+var currentDay = 0;
+var bounds = new google.maps.LatLngBounds();
+
+function updateMapBounds(day){
+  bounds = new google.maps.LatLngBounds();
+  //access markers array
+  var markers = days[day].markers;
+  for(marker in markers){
+    bounds.extend(markers[marker].position);
+  }
+
+  currentMap.fitBounds(bounds);
+
+
+};
 
 $(function initializeMap (){
 
@@ -46,7 +60,7 @@ $(function initializeMap (){
   });
 
 
-
+   addDay();
 
 
   // drawMarker('hotel', [40.705137, -74.007624]);
@@ -63,6 +77,10 @@ var iconURLs = {
   activity: '/images/star-3.png'
 };
 
+function addDay(){
+  this.days.push(new Day());
+}
+
 function drawMarker (type, coords, name) {
   var latLng = new google.maps.LatLng(coords[0], coords[1]);
   var iconURL = iconURLs[type];
@@ -70,7 +88,7 @@ function drawMarker (type, coords, name) {
     icon: iconURL,
     position: latLng
   });
-  $('#itinerary').data(name, marker)
+  days[currentDay].markers[name] = marker
   marker.setMap(currentMap);
 }
 
@@ -119,9 +137,45 @@ function addSelectedItinerary(type){
   itineraryHTML = createItineraryHTML(itineraryName);
   $('#'+ type +'-list').append(itineraryHTML);
 
+  days[currentDay][type].push(itineraryName);
+
   //creates necessary fields for marker and calls drawMarker()
   location = itinerary[index].place.location;
   drawMarker(type, location, itineraryName);
+}
+
+
+function hidePreviousMarkers(prevDayIndex){
+  var markers = days[prevDayIndex].markers;
+
+  for( marker in markers){
+    console.log("Im trying to hide a map");
+    markers[marker].setMap(null);
+  }
+}
+
+function showItineraries(dayIndex){
+  days[dayIndex].hotel.forEach((hotel, i, arr) =>{
+    $('#hotel-list').append(createItineraryHTML(hotel));
+  });
+
+  days[dayIndex].activity.forEach((activity, i, arr) =>{
+    $('#activity-list').append(createItineraryHTML(activity));
+  });
+
+  days[dayIndex].restaurant.forEach((restaurant, i, arr) =>{
+    $('#restaurant-list').append(createItineraryHTML(restaurant));
+  });
+
+}
+
+function showSelectedMarkers(selectedDayIndex){
+  var markers = days[selectedDayIndex].markers;
+  console.log(markers);
+  for( marker in markers){
+
+    markers[marker].setMap(currentMap);
+  }
 }
 
 /*
@@ -156,10 +210,14 @@ $('#activity-add').on('click', function(event){
 
 //wires itinerary section to delete itinerary if btn is clicked
 $('#itinerary').on('click', function(event){
-  //console.log(event.target);
+
   if($(event.target).hasClass('btn')){
-    console.log($(event.target).prev().text())
-    $('#itinerary').data($(event.target).prev().text()).setMap(null);
+    var name = $(event.target).prev().text();
+    var type = $(event.target).closest('.list-group').attr('id').split('-')[0];
+    var indexToRemove = days[currentDay][type].indexOf(name);
+    days[currentDay][type].splice(indexToRemove, 1);
+    days[currentDay].markers[name].setMap(null);
+    delete days[currentDay].markers[name];
     $(event.target).closest('div').remove();
   }
 })
@@ -167,18 +225,76 @@ $('#itinerary').on('click', function(event){
 //wires up button to add a day
 $('#day-add').on('click', function(event) {
   let nextDay = '' + $('.day-btn').length;
-  console.log(nextDay)
   let dayBtn = '<button class="btn btn-circle day-btn">' + nextDay + '</button>'
+  addDay();
+  console.log(days);
   $(dayBtn).insertBefore('#day-add');
 })
 
 
-$('.day-buttons').on('click', function(event){
-  if(!$(event.target).is('#day-add')){
-  let newDay = $(event.target).text();
-  console.log(newDay);
-}
+$('.day-buttons').on('click', function(event){ //click to switch day
+  if(!$(event.target).is('#day-add') && $(event.target).is('.day-btn')){
+
+
+    //selecting selectedDay and previousDay elements
+    let selectedDay = $(event.target);
+    var previousDay = $('.current-day');
+    //sets currentDay indexto selected text
+    currentDay = selectedDay.text() - 1;
+    let prevDayIndex = +previousDay.text() -1;
+
+    switchDay(currentDay, prevDayIndex);
+    //update buttons
+    previousDay.removeClass('current-day');
+    selectedDay.addClass('current-day');
+
+    //update header
+    $('#dayValue').text("" + (currentDay+1));
+  }
 })
+
+function switchDay(nextDay, prevDay){
+      //hide previous and show selected
+    console.log(prevDay, "this is prevDay");
+    console.log(nextDay, "this is nextDay");
+    console.log(days );
+    hidePreviousMarkers(prevDay);
+    showSelectedMarkers(nextDay);
+    updateMapBounds(nextDay);
+
+    //remove previous itinerary items and update with new
+    $('.itinerary-item').remove();
+    showItineraries(nextDay);
+
+
+}
+
+
+//Wiring for button that deletes day
+
+$('#delete-day').on('click', function(event){
+  var thisDay = +$('#dayValue').text();
+  var previousDay = $('.current-day').prev();
+  if(thisDay === days.length && thisDay != 1){ //if we are deleting last day
+    switchDay(thisDay-2, thisDay-1);
+    days.pop();
+    $('.current-day').remove();
+    previousDay.addClass("current-day");
+    $('#dayValue').text("" + (thisDay - 1));
+  }
+  else if(thisDay != 1) {
+    hidePreviousMarkers(thisDay - 1);
+    days[thisDay-1] = new Day();
+    $('.itinerary-item').remove();
+  }
+  else {
+    hidePreviousMarkers(0);
+    days[0] = new Day();
+    $('.itinerary-item').remove();
+  }
+
+});
+
 
 /*
 Day object
